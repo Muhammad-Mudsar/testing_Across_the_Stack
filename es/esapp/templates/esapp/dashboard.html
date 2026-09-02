@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Admin Dashboard - EventStack
+{% endblock %}
+{% block content %}
+  <!-- Main Container -->
+  <div class="d-flex min-vh-100">
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-lg-block" style="width: 250px; background-color: var(--surface);">
+      <h6 class="text-primary fw-bold px-3 py-4 border-bottom border-secondary">ADMIN MENU</h6>
+
+      <div class="sidebar-item active" onclick="navigateTo('dashboard')">📊 Dashboard</div>
+      <div class="sidebar-item">
+        <a href="{% url 'manageE' %}">📅 Manage Events</a>
+      </div>
+      <div class="sidebar-item" onclick="navigateTo('attendees')">👥 Attendees</div>
+      <div class="sidebar-item" onclick="navigateTo('analytics')">📈 Analytics</div>
+      <div class="sidebar-item" onclick="navigateTo('settings')">⚙️ Settings</div>
+    </div>
+
+    <!-- Main Content -->
+    <div style="flex: 1; overflow-y: auto;">
+      <!-- Header Stats -->
+      <section class="bg-gradient-dark py-4 border-bottom border-secondary">
+        <div class="container-fluid">
+          <h1 class="display-5 fw-bold text-white mb-0">Dashboard</h1>
+          <p class="text-secondary mb-0" id="lastUpdate">Last updated: Now</p>
+        </div>
+      </section>
+
+      <div class="my-2 mx-5 px-5">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Content -->
+      <section class="py-5">
+        <div class="container-fluid">
+          <!-- Stats Cards -->
+          <div class="row g-4 mb-5">
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="stat-label mb-2">Total Events</p>
+                    <p class="stat-value">12</p>
+                  </div>
+                  <span class="display-6">📅</span>
+                </div>
+                <small class="text-success">+2 this month</small>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="stat-label mb-2">Total Attendees</p>
+                    <p class="stat-value">3,542</p>
+                  </div>
+                  <span class="display-6">👥</span>
+                </div>
+                <small class="text-success">+287 this week</small>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="stat-label mb-2">Upcoming Events</p>
+                    <p class="stat-value">4</p>
+                  </div>
+                  <span class="display-6">🎯</span>
+                </div>
+                <small class="text-warning">Next: in 3 days</small>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="stat-label mb-2">Avg. Attendance</p>
+                    <p class="stat-value">87%</p>
+                  </div>
+                  <span class="display-6">📊</span>
+                </div>
+                <small class="text-success">+5% from last month</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Events Table -->
+          <div class="row">
+            <div class="col-lg-8">
+              <div class="card bg-secondary border-0 shadow-lg mb-5">
+                <div class="card-header bg-dark border-secondary py-3">
+                  <h5 class="card-title fw-bold text-white mb-0">Recent Events</h5>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="border-secondary">
+                        <tr>
+                          <th>Event</th>
+                          <th>Dated</th>
+                          <th>Attendees</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for event in events %}
+                          <tr>
+                            <td class="fw-semibold">{{ event.title }}</td>
+                            <td class="text-muted">{{ event.date }}</td>
+
+                            <td class="fw-semibold">{{ event.category }}</td>
+                            <td class="fw-semibold">{{ event.status }}</td>
+                          </tr>
+                        {% empty %}
+                          <tr>
+                            <td colspan="6">No events found.</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer bg-dark border-secondary text-center py-3">
+                  <a href="{% url 'manageE' %}" class="text-primary fw-semibold small">View all events →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="col-lg-4">
+              <div class="card bg-secondary border-0 shadow-lg mb-4">
+                <div class="card-header bg-dark border-secondary py-3">
+                  <h5 class="card-title fw-bold text-white mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body p-4">
+                  <div class="d-grid gap-2">
+                    <a href="{% url 'manageE' %}" class="btn btn-color">Manage Events</a>
+                    <a href="{% url 'create' %}" class="btn btn-primary">+ Create Event</a>
+                    <a href="#" class="btn btn-color">Up Comming</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card bg-secondary border-0 shadow-lg">
+                <div class="card-header bg-dark border-secondary py-3">
+                  <h5 class="card-title fw-bold text-white mb-0">Top Performing Events</h5>
+                </div>
+                <div class="card-body p-4">
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                      <small class="fw-semibold">TechConf 2026</small>
+                      <small class="text-accent fw-bold">92%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-accent" style="width: 92%;"></div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                      <small class="fw-semibold">React Workshop</small>
+                      <small class="text-primary fw-bold">85%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-primary" style="width: 85%;"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="d-flex justify-content-between mb-2">
+                      <small class="fw-semibold">AI Webinar</small>
+                      <small class="text-success fw-bold">78%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-success" style="width: 78%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock %}

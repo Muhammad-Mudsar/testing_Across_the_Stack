@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Event Delete Confirm {% endblock title %}
+
+{% block content %}
+<div class="container my-5">
+   <div class="row">
+      <div class="col-sm-6 offset-sm-3">
+         <h3>Event Delete Confirm</h3>
+         <hr>
+
+         <form action="" method="post" novalidate class="shadow p-5">
+            {% csrf_token %}
+            <div class="form-group">
+               {% if form.non_field_errors %}
+               {% for error in form.non_field_errors %}
+
+               <p class="alert alert-danger my-2">{{error}}</p>
+               {% endfor %}
+               {% endif %}
+            </div>
+            {% for fom in form %}
+            <div class="form-group">
+
+               {{fom.label_tag}} {{fom}} <small class="text-danger"> {{fom.errors| striptags}}</small> <br>
+            </div>
+            {% endfor %}
+            <h3>Are You Sure you want to Delete this Event?</h3>
+            <input type="submit" class="btn btna mt-4 ms-2 text-reset border-2 border-danger" value="Confirm?">
+
+            <div class="text-center text-primary py-1">New to<small class="fw-bold"> Event Stack ?
+                  <a href="{% url 'dashboard' %}" class="text-danger border-2 border-danger">Back to Dashboard</a>
+               </small></div>
+      </div>
+
+
+      </form>
+   </div>
+</div>
+</div>
+{% endblock %}

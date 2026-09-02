@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home{% endblock title %}
+
+<script src="{% static ' js/eventStore.js' %}"></script>
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-dark py-5 py-lg-6 border-bottom border-secondary">
+    <div class="container">
+        <h1 class="display-4 fw-bold text-white mb-2">Discover Events</h1>
+        <p class="lead text-secondary">Find and register for amazing events happening near you</p>
+    </div>
+</section>
+
+<!-- Filters & Search -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-lg-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search events by name, date, or location..."
+                        id="searchInput">
+                    <button class="btn btn-primary" type="button">Search</button>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="conference">Conference</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="meetup">Meetup</option>
+                    <option value="webinar">Webinar</option>
+                    <option value="networking">Networking</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Filter Tags -->
+        <div class="mb-4 d-flex gap-2 flex-wrap">
+            <span class="text-muted small">Filter by:</span>
+            <button class="btn btn-sm btn-outline-secondary active" onclick="filterEvents('all')">All Events</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="filterEvents('upcoming')">Upcoming</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="filterEvents('today')">Today</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="filterEvents('week')">This Week</button>
+        </div>
+    </div>
+</section>
+
+{% if messages %}
+<div class="modal fade" id="msgModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                {% for message in messages %}
+                <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- event add model -->
+<!-- Button to open Add modal -->
+<button class="btn btn-success mb-4" @click="openAddModal = true">+ Add Event</button>
+
+<!-- Add Event Modal -->
+<div x-data="{ openAddModal: false }" x-show="openAddModal" x-cloak
+    style="display: none; position: fixed; inset:0; background: rgba(0,0,0,0.5); z-index:1050;"
+    @click.away="openAddModal = false">
+
+
+    <div class="modal-dialog modal-dialog-centered mx-auto mt-5" style="max-width:500px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Event</h5>
+                <button type="button" class="btn-close" @click="openAddModal = false"></button>
+            </div>
+            <div class="modal-body">
+                <form
+                    @submit.prevent="$store.eventStore.addEvent({ title, description, date, category }); openAddModal = false;">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" x-model="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" x-model="description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" x-model="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input type="text" class="form-control" x-model="category" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var modal = new bootstrap.Modal(document.getElementById('msgModal'));
+    modal.show();
+</script>
+{% endif %}
+<!-- Events Grid -->
+<section class="py-5">
+    <div class="container">
+        {% csrf_token %}
+        <script>  window.initialEvents = {{ events_json | safe }}; </script>
+        <div class="row g-4" id="eventsContainer">
+
+            <!-- Event Cards will be loaded here -->
+            <!-- Pagination -->
+            <div x-data x-init="$store.eventStore.hydrate(window.initialEvents)">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Events</h2>
+                    <div>
+                        <button class="btn btn-outline-primary" @click="$store.eventStore.fetchEvents()">
+                            🔄 Refresh
+                        </button>
+                        <button class="btn btn-success" @click="openAddModal = true">+ Add Event</button>
+                    </div>
+                </div>
+
+
+                <!-- ======= SKELETON LOADERS (shown while loading) ======= -->
+                <div x-show="$store.eventStore.loading" class="row g-4">
+                    <template x-for="i in 3" :key="i">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge bg-info placeholder-glow">
+                                            <span class="placeholder col-6"></span>
+                                        </span>
+                                    </div>
+                                    <h5 class="card-title placeholder-glow">
+                                        <span class="placeholder col-8"></span>
+                                    </h5>
+                                    <p class="card-text placeholder-glow">
+                                        <span class="placeholder col-10"></span>
+                                        <span class="placeholder col-7"></span>
+                                    </p>
+                                    <div class="d-flex flex-column gap-2 mb-4 border-top border-secondary pt-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="placeholder col-4"></span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="placeholder col-5"></span>
+                                        </div>
+                                    </div>
+                                    <div class="progress mb-3" style="height:6px;">
+                                        <div class="progress-bar bg-primary placeholder" style="width:30%"></div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-secondary border-secondary">
+                                    <button class="btn btn-primary w-100 placeholder disabled">Loading...</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+
+                <!-- ======= EMPTY STATE (shown when no events and not loading) ======= -->
+                <div x-show="!$store.eventStore.loading && $store.eventStore.events.length === 0"
+                    class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">📭</div>
+                    <h3 class="text-white mb-2">No Events Found</h3>
+                    <p class="text-secondary mb-4">Try adjusting your search or filters to find more events</p>
+                    <a href="{% url 'event_create' %}" class="btn btn-primary">Create New Event</a>
+                </div>
+
+
+                <!-- ======= ACTUAL EVENT CARDS (Reactive) ======= -->
+                <template x-if="!$store.eventStore.loading && $store.eventStore.events.length > 0">
+                    <div class="row g-4">
+                        <template x-for="event in $store.eventStore.events" :key="event.id">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border-0 shadow h-100 d-flex flex-column">
+                                    <div class="card-body flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <span class="badge bg-info" x-text="event.category"></span>
+                                            <!-- optional delete button -->
+                                            <button @click="$store.eventStore.deleteEvent(event.id)"
+                                                class="btn btn-sm btn-outline-danger">✕</button>
+                                        </div>
+
+                                        <h5 class="card-title text-secondary text-dark fw-bold" x-text="event.title">
+                                        </h5>
+                                        <p class="card-text text-muted text-sm mb-3" x-text="event.description"></p>
+                                        <div class="d-flex flex-column gap-2 mb-4 border-top border-secondary pt-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="text-primary">📅</span>
+                                                <span class="text-sm text-muted" x-text="event.date"></span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="text-primary">👥</span>
+                                                <span class="text-sm text-muted"
+                                                    x-text="'Hosted By Mr. ' + (event.user || 'Unknown')"></span>
+                                            </div>
+                                        </div>
+                                        <div class="progress mb-3" style="height: 6px;">
+                                            <div class="progress-bar bg-primary" role="progressbar"></div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-secondary border-secondary">
+                                        <a :href="`/event-detail/${event.id}`">
+
+
+                                            <button @click="$store.eventStore.selectEvent(event.id)"
+                                                class="btn btn-primary w-100">
+                                                Event Detail
+                                            </button>
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- ======= DETAIL MODAL (uses shared selectedEvent) ======= -->
+
+
+            </div>
+
+            <!-- Event Cards will be loaded here -->
+            <!-- Pagination -->
+
+            <!-- !Event Cards will be loaded here -->
+
+        </div>
+</section>
+
+<!-- Add Event Button -->
+
+
+<!-- Add Event Modal (using x-data locally for form fields) -->
+<div x-data="{ openAddModal: false, title: '', description: '', date: '', category: '' }" x-show="openAddModal" x-cloak
+    style="display: none; position: fixed; inset:0; background: rgba(0,0,0,0.5); z-index:1050;"
+    @click.away="openAddModal = false">
+
+    <div class="modal-dialog modal-dialog-centered mx-auto mt-5" style="max-width:500px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Event</h5>
+                <button type="button" class="btn-close" @click="openAddModal = false"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" @submit.prevent="$store.eventStore.addEvent({ title, description, date, category });
+          openAddModal = false; title = ''; description = ''; date = ''; category = '';">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" x-model="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" x-model="description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" x-model="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input type="text" class="form-control" x-model="category" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock content %}
+
+{% block LiveSCRIPT %}
+{% comment %}
+<script src="{% 'js/events.js' %}"></script> {% endcomment %}
+{% endblock LiveSCRIPT %}
